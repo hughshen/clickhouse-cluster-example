@@ -115,48 +115,14 @@
     <!-- Configuration of clusters that could be used in Distributed tables.
          https://clickhouse.yandex/reference_en.html#Distributed
       -->
-    <remote_servers>
-        <ck_cluster>
-            <shard>
-                <internal_replication>true</internal_replication>
-                <replica>
-                    <host>clickhouse1</host>
-                    <port>9000</port>
-                </replica>
-                <replica>
-                    <host>clickhouse2</host>
-                    <port>9000</port>
-                </replica>
-            </shard>
-            <shard>
-                <internal_replication>true</internal_replication>
-                <replica>
-                    <host>clickhouse3</host>
-                    <port>9000</port>
-                </replica>
-                <replica>
-                    <host>clickhouse4</host>
-                    <port>9000</port>
-                </replica>
-            </shard>
-        </ck_cluster>
-    </remote_servers>
+    <remote_servers incl="clickhouse_remote_servers" />
 
     <!-- If element has 'incl' attribute, then for it's value will be used corresponding substitution from another file.
          By default, path to file with substitutions is /etc/metrika.xml. It could be changed in config in 'include_from' element.
          Values for substitutions are specified in /yandex/name_of_substitution elements in that file.
       -->
 
-    <zookeeper>
-        <node index="1">
-            <host>zoo1</host>
-            <port>2181</port>
-        </node>
-        <node index="2">
-            <host>zoo2</host>
-            <port>2181</port>
-        </node>
-    </zookeeper>
+    <zookeeper incl="clickhouse_zookeeper_servers" optional="true" />
 
     <!-- Substitutions for parameters of replicated tables.
           Optional. If you don't use replicated tables, you could omit that.
@@ -164,9 +130,11 @@
          See https://clickhouse.yandex/reference_en.html#Creating%20replicated%20tables
       -->
     <macros>
-        <shard>01</shard>
-        <replica>01</replica>
+        <shard>shard_01</shard>
+        <replica>replica_01</replica>
     </macros>
+
+    <include_from>/etc/clickhouse-server/metrika.xml</include_from>
 
     <!-- Reloading interval for embedded dictionaries, in seconds. Default: 3600. -->
     <builtin_dictionaries_reload_interval>3600</builtin_dictionaries_reload_interval>

@@ -1,12 +1,5 @@
 version: '3'
 
-networks:
-    ck_cluster:
-        driver: bridge
-        ipam:
-           config:
-              - subnet: 172.50.0.0/24
-
 services:
     haproxy:
         image: haproxy:latest
@@ -14,8 +7,6 @@ services:
             - "9001:9000"
         volumes:
             - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-        networks:
-            - ck_cluster
         depends_on:
             - clickhouse1
             - clickhouse2
@@ -30,9 +21,7 @@ services:
             - "3888"
         environment:
             ZOO_MY_ID: "1"
-            ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181 server.2=zoo2:2888:3888;2181
-        networks:
-            - ck_cluster
+            ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181
 
     zoo2:
         image: zookeeper:latest
@@ -42,21 +31,30 @@ services:
             - "3888"
         environment:
             ZOO_MY_ID: "2"
-            ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=0.0.0.0:2888:3888;2181
-        networks:
-            - ck_cluster
+            ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=0.0.0.0:2888:3888;2181 server.3=zoo3:2888:3888;2181
+
+    zoo3:
+        image: zookeeper:latest
+        expose:
+            - "2181"
+            - "2888"
+            - "3888"
+        environment:
+            ZOO_MY_ID: "3"
+            ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=0.0.0.0:2888:3888;2181
 
     clickhouse1:
         image: yandex/clickhouse-server:19.15.3.6
+        hostname: clickhouse1
         expose:
             - "9000"
         depends_on:
             - zoo1
             - zoo2
+            - zoo3
         volumes:
             - ./config_1.xml:/etc/clickhouse-server/config.xml
-        networks:
-            - ck_cluster
+            - ./metrika.xml:/etc/clickhouse-server/metrika.xml
         ulimits:
             nofile:
                 soft: 262144
@@ -64,15 +62,16 @@ services:
 
     clickhouse2:
         image: yandex/clickhouse-server:19.15.3.6
+        hostname: clickhouse2
         expose:
             - "9000"
         depends_on:
             - zoo1
             - zoo2
+            - zoo3
         volumes:
             - ./config_2.xml:/etc/clickhouse-server/config.xml
-        networks:
-            - ck_cluster
+            - ./metrika.xml:/etc/clickhouse-server/metrika.xml
         ulimits:
             nofile:
                 soft: 262144
@@ -80,15 +79,16 @@ services:
 
     clickhouse3:
         image: yandex/clickhouse-server:19.15.3.6
+        hostname: clickhouse3
         expose:
             - "9000"
         depends_on:
             - zoo1
             - zoo2
+            - zoo3
         volumes:
             - ./config_3.xml:/etc/clickhouse-server/config.xml
-        networks:
-            - ck_cluster
+            - ./metrika.xml:/etc/clickhouse-server/metrika.xml
         ulimits:
             nofile:
                 soft: 262144
@@ -96,15 +96,16 @@ services:
 
     clickhouse4:
         image: yandex/clickhouse-server:19.15.3.6
+        hostname: clickhouse4
         expose:
             - "9000"
         depends_on:
             - zoo1
             - zoo2
+            - zoo3
         volumes:
             - ./config_4.xml:/etc/clickhouse-server/config.xml
-        networks:
-            - ck_cluster
+            - ./metrika.xml:/etc/clickhouse-server/metrika.xml
         ulimits:
             nofile:
                 soft: 262144
